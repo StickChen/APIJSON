@@ -14,24 +14,19 @@ limitations under the License.*/
 
 package zuo.biao.apijson.server;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
 import zuo.biao.apijson.JSONResponse;
 import zuo.biao.apijson.Log;
 import zuo.biao.apijson.NotNull;
 import zuo.biao.apijson.StringUtil;
+
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**executor for query(read) or update(write) MySQL database
  * @author Lemon
@@ -118,6 +113,7 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 	 */
 	@Override
 	public JSONObject execute(SQLConfig config) throws Exception {
+		Log.d(TAG, "start execute ");
 		if (config == null) {
 			Log.e(TAG, "select  config==null >> return null;");
 			return null;
@@ -135,15 +131,12 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 		JSONObject result = null;
 
 		long startTime = System.currentTimeMillis();
-		Log.d(TAG, "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-				+ "\n select  startTime = " + startTime
-				+ "\n sql = \n " + sql
-				+ "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 
 		ResultSet rs = null;
 		switch (config.getMethod()) {
 		case HEAD:
 		case HEADS:
+			log(sql, startTime);
 			rs = executeQuery(config);
 
 			result = rs.next() ? AbstractParser.newSuccessResult()
@@ -156,6 +149,7 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 		case POST:
 		case PUT:
 		case DELETE:
+			log(sql, startTime);
 			long updateCount = executeUpdate(config);
 
 			result = AbstractParser.newResult(updateCount > 0 ? JSONResponse.CODE_SUCCESS : JSONResponse.CODE_NOT_FOUND
@@ -179,15 +173,17 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 			return null;
 		}
 
-
 		final int position = config.getPosition();
 		result = getCache(sql, position, config.isCacheStatic());
-		Log.i(TAG, ">>> select  result = getCache('" + sql + "', " + position + ") = " + result);
+		Log.i(TAG, "execute >>> select  result = getCache('" + sql + "', " + position + ") = " + result);
 		if (result != null) {
-			Log.d(TAG, "\n\n select  result != null >> return result;"  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n");
+			Log.d(TAG, "\n");
+			Log.d(TAG, "end execute by cache");
+			Log.d(TAG, "execute select  result != null >> return result;"  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 			return result;
 		}
 
+		log(sql, startTime);
 		rs = executeQuery(config);
 
 		//		final boolean cache = config.getCount() != 1;
@@ -208,7 +204,7 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 		int viceColumnStart = length + 1; //第一个副表字段的index
 		while (rs.next()) {
 			index ++;
-			Log.d(TAG, "\n\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n select while (rs.next()){  index = " + index + "\n\n");
+//			Log.d(TAG, "execute \n\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n select while (rs.next()){  index = " + index + "\n\n");
 
 			result = new JSONObject(true);
 
@@ -223,10 +219,10 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 
 			resultMap = onPutTable(config, rs, rsmd, resultMap, index, result);
 
-			Log.d(TAG, "\n select  while (rs.next()) { resultMap.put( " + index + ", result); "
-					+ "\n >>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n");
+//			Log.d(TAG, "execute \n select  while (rs.next()) { resultMap.put( " + index + ", result); "
+//					+ "\n >>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n");
 		}
-
+		Log.d(TAG, "execute result count = " + (index + 1));
 		rs.close();
 
 
@@ -253,9 +249,17 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 		Log.i(TAG, ">>> select  putCache('" + sql + "', resultMap);  resultMap.size() = " + resultMap.size());
 
 		long endTime = System.currentTimeMillis();
-		Log.d(TAG, "\n\n select  endTime = " + endTime + "; duration = " + (endTime - startTime)
-				+ "\n return resultMap.get(" + position + ");"  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n");
+		Log.d(TAG, "\n select  endTime = " + endTime + "; duration = " + (endTime - startTime)
+				+ "\n return resultMap.get(" + position + ");"  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+		Log.d(TAG, "end execute ");
 		return resultMap.get(position);
+	}
+
+	private void log(String sql, long startTime) {
+		Log.d(TAG, "execute SQL\n\t<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+				+ "\n\t select  startTime = " + startTime
+				+ "\n\t sql = \n\t " + sql
+				+ "\n\t>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 	}
 
 

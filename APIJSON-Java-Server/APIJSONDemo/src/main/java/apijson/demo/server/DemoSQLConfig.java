@@ -14,18 +14,17 @@ limitations under the License.*/
 
 package apijson.demo.server;
 
-import java.util.List;
-
-import com.alibaba.fastjson.JSONObject;
-
 import apijson.demo.server.model.Privacy;
 import apijson.demo.server.model.User;
+import com.alibaba.fastjson.JSONObject;
 import zuo.biao.apijson.RequestMethod;
 import zuo.biao.apijson.StringUtil;
 import zuo.biao.apijson.server.AbstractSQLConfig;
 import zuo.biao.apijson.server.Join;
 import zuo.biao.apijson.server.SQLConfig;
 import zuo.biao.apijson.server.Subquery;
+
+import java.util.List;
 
 
 /**SQL配置
@@ -44,7 +43,7 @@ public class DemoSQLConfig extends AbstractSQLConfig {
 	@Override
 	public String getDBUri() {
 		//TODO 改成你自己的，TiDB 默认端口为 4000
-		return DATABASE_POSTGRESQL.equalsIgnoreCase(getDatabase()) ? "jdbc:postgresql://localhost:5432/postgres" : "jdbc:mysql://localhost:3306";
+		return DATABASE_POSTGRESQL.equalsIgnoreCase(getDatabase()) ? "jdbc:postgresql://localhost:5432/postgres" : "jdbc:mysql://localhost:3306/api_json_demo";
 	}
 	@Override
 	public String getDBAccount() {
@@ -52,20 +51,20 @@ public class DemoSQLConfig extends AbstractSQLConfig {
 	}
 	@Override
 	public String getDBPassword() {
-		return DATABASE_POSTGRESQL.equalsIgnoreCase(getDatabase()) ? null : "apijson"; //TODO 改成你自己的，TiDB 默认密码为空字符串 ""
+		return DATABASE_POSTGRESQL.equalsIgnoreCase(getDatabase()) ? null : "123456"; //TODO 改成你自己的，TiDB 默认密码为空字符串 ""
 	}
 	@Override
 	public String getSchema() {
 		String s = super.getSchema();
-		return StringUtil.isEmpty(s, true) ? "sys" : s; //TODO 改成你自己的
+		return StringUtil.isEmpty(s, true) ? "api_json_demo" : s; //TODO 改成你自己的
 	}
 	
 	@Override
 	public String getSubqueryString(Subquery subquery) throws Exception {
 		//TODO 用 SQLExecutor 的 preparedStatement 返回的
-//		String range = subquery.getRange();
-//		return (range  == null || range.isEmpty() ? "" : range) + "(" + subquery.getConfig().getSQL(false) + ") ";
-		throw new UnsupportedOperationException("未解决 SQL 注入，暂不支持");
+		String range = subquery.getRange();
+		return (range  == null || range.isEmpty() ? "" : range) + "(" + subquery.getConfig().getSQL(false) + ") ";
+//		throw new UnsupportedOperationException("未解决 SQL 注入，暂不支持");
 	}
 
 	public DemoSQLConfig() {

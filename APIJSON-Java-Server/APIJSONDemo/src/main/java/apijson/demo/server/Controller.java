@@ -14,42 +14,26 @@ limitations under the License.*/
 
 package apijson.demo.server;
 
-import static zuo.biao.apijson.RequestMethod.DELETE;
-import static zuo.biao.apijson.RequestMethod.GET;
-import static zuo.biao.apijson.RequestMethod.GETS;
-import static zuo.biao.apijson.RequestMethod.HEAD;
-import static zuo.biao.apijson.RequestMethod.HEADS;
-import static zuo.biao.apijson.RequestMethod.POST;
-import static zuo.biao.apijson.RequestMethod.PUT;
-
-import java.net.URLDecoder;
-import java.util.Random;
-import java.util.concurrent.TimeoutException;
-
-import javax.servlet.http.HttpSession;
-
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson.JSONObject;
-
 import apijson.demo.server.model.BaseModel;
 import apijson.demo.server.model.Privacy;
 import apijson.demo.server.model.User;
 import apijson.demo.server.model.Verify;
-import zuo.biao.apijson.JSON;
-import zuo.biao.apijson.JSONResponse;
-import zuo.biao.apijson.Log;
+import com.alibaba.fastjson.JSONObject;
+import org.springframework.web.bind.annotation.*;
+import zuo.biao.apijson.*;
 import zuo.biao.apijson.RequestMethod;
-import zuo.biao.apijson.StringUtil;
 import zuo.biao.apijson.server.JSONRequest;
 import zuo.biao.apijson.server.exception.ConditionErrorException;
 import zuo.biao.apijson.server.exception.ConflictException;
 import zuo.biao.apijson.server.exception.NotExistException;
 import zuo.biao.apijson.server.exception.OutOfRangeException;
+
+import javax.servlet.http.HttpSession;
+import java.net.URLDecoder;
+import java.util.Random;
+import java.util.concurrent.TimeoutException;
+
+import static zuo.biao.apijson.RequestMethod.*;
 
 
 /**request controller
@@ -74,6 +58,7 @@ public class Controller {
 	 * @see {@link RequestMethod#GET}
 	 */
 	@PostMapping(value = "get")
+	@ResponseBody
 	public String get(@RequestBody String request, HttpSession session) {
 		return new DemoParser(GET).setSession(session).parse(request);
 	}

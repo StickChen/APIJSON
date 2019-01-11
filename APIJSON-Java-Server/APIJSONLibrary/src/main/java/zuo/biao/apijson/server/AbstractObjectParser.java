@@ -14,35 +14,23 @@ limitations under the License.*/
 
 package zuo.biao.apijson.server;
 
-import static zuo.biao.apijson.JSONObject.KEY_COMBINE;
-import static zuo.biao.apijson.JSONObject.KEY_CORRECT;
-import static zuo.biao.apijson.JSONObject.KEY_DROP;
-import static zuo.biao.apijson.JSONObject.KEY_TRY;
-import static zuo.biao.apijson.RequestMethod.PUT;
-import static zuo.biao.apijson.server.SQLConfig.TYPE_ITEM;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-
 import zuo.biao.apijson.Log;
 import zuo.biao.apijson.NotNull;
 import zuo.biao.apijson.RequestMethod;
 import zuo.biao.apijson.StringUtil;
 import zuo.biao.apijson.server.exception.ConflictException;
 import zuo.biao.apijson.server.exception.NotExistException;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
+import static zuo.biao.apijson.JSONObject.*;
+import static zuo.biao.apijson.RequestMethod.PUT;
+import static zuo.biao.apijson.server.SQLConfig.TYPE_ITEM;
 
 
 /**简化Parser，getObject和getArray(getArrayConfig)都能用
@@ -125,8 +113,8 @@ public abstract class AbstractObjectParser implements ObjectParser {
 		}
 
 
-		Log.d(TAG, "AbstractObjectParser  table = " + table + "; isTable = " + isTable);
-		Log.d(TAG, "AbstractObjectParser  isEmpty = " + isEmpty + "; tri = " + tri + "; drop = " + drop);
+		Log.d(TAG, "constructor AbstractObjectParser  table = " + table + "; isTable = " + isTable);
+		Log.d(TAG, "constructor AbstractObjectParser  isEmpty = " + isEmpty + "; tri = " + tri + "; drop = " + drop);
 	}
 
 	public static final Map<String, Pattern> COMPILE_MAP;
@@ -223,6 +211,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 	 */
 	@Override
 	public AbstractObjectParser parse() throws Exception {
+		Log.d(TAG, "start parse path=" + path + ", request=" + request);
 		if (isInvalidate() == false) {
 			breakParse = false;
 
@@ -312,7 +301,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 			recycle();
 			return null;
 		}
-
+		Log.d(TAG, "end parse path=" + path + ", request=" + request);
 		return this;
 	}
 
@@ -327,20 +316,21 @@ public abstract class AbstractObjectParser implements ObjectParser {
 	 */
 	@Override
 	public boolean onParse(@NotNull String key, @NotNull Object value) throws Exception {
+		Log.d(TAG, "start onParse key = " + key + ", value = " + value);
 		if (key.endsWith("@")) {//StringUtil.isPath((String) value)) {
-			
+
 			if (value instanceof JSONObject) { // SQL 子查询对象，JSONObject -> SQLConfig.getSQL
 				String replaceKey = key.substring(0, key.length() - 1);//key{}@ getRealKey
-				
+
 				JSONObject subquery = (JSONObject) value;
 				String range = subquery.getString("range");
 				if (range != null && "any".equals(range) == false && "all".equals(range) == false) {
 					throw new IllegalArgumentException("子查询 " + path + "/" + key + ":{ range:value } 中 value 只能为 [any, all] 中的一个！");
 				}
 
-				
+
 				JSONArray arr = parser.onArrayParse(subquery, AbstractParser.getAbsPath(path, replaceKey), "[]", true);
-				
+
 				JSONObject obj = arr == null || arr.isEmpty() ? null : arr.getJSONObject(0);
 
 				String from = subquery.getString("from");
@@ -348,12 +338,12 @@ public abstract class AbstractObjectParser implements ObjectParser {
 				if (arrObj == null) {
 					throw new IllegalArgumentException("子查询 " + path + "/" + key + ":{ from:value } 中 value 对应的主表对象不存在！");
 				}
-//				
+//
 				SQLConfig cfg = (SQLConfig) arrObj.get(AbstractParser.KEY_CONFIG);
 				if (cfg == null) {
 					throw new NotExistException(TAG + ".onParse  cfg == null");
 				}
-				
+
 				Subquery s = new Subquery();
 				s.setPath(path);
 				s.setOriginKey(key);
@@ -400,7 +390,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 						Log.d(TAG, "onParse  isTable(table) == false >> continue;");
 						return true;//舍去，对Table无影响
 					}
-				} 
+				}
 
 				//直接替换原来的key@:path为key:target
 				Log.i(TAG, "onParse    >>  key = replaceKey; value = target;");
@@ -453,7 +443,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 		else {
 			sqlRequest.put(key, value);
 		}
-
+		Log.d(TAG, "end onParse key = " + key + ", value = " + value);
 		return true;
 	}
 
@@ -462,12 +452,13 @@ public abstract class AbstractObjectParser implements ObjectParser {
 	/**
 	 * @param key
 	 * @param value
-	 * @param isFirst 
+	 * @param
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
 	public JSON onChildParse(int index, String key, JSONObject value) throws Exception {
+		Log.i(TAG, "start onChildParse key = " + key + "; value = " + value + "; type = " + type);
 		boolean isFirst = index <= 0;
 		boolean isMain = isFirst && type == TYPE_ITEM;
 
@@ -496,7 +487,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 				invalidate();
 			}
 		}
-		Log.i(TAG, "onChildParse  ObjectParser.onParse  key = " + key + "; child = " + child);
+		Log.i(TAG, "end onChildParse key = " + key + "; value = " + value + "; child = " + child);
 
 		return isEmpty ? null : child;//只添加! isChildEmpty的值，可能数据库返回数据不够count
 	}
@@ -679,14 +670,16 @@ public abstract class AbstractObjectParser implements ObjectParser {
 		//解析函数function
 		Set<Entry<String, String>> functionSet = map == null ? null : map.entrySet();
 		if (functionSet != null && functionSet.isEmpty() == false) {
-			//			JSONObject json = "-".equals(type) ? request : response; // key-():function 是实时执行，而不是在这里批量执行
+Log.d(TAG, "onFunctionResponse start type=" + type);//			JSONObject json = "-".equals(type) ? request : response; // key-():function 是实时执行，而不是在这里批量执行
 
 			for (Entry<String, String> entry : functionSet) {
 
 				//				parseFunction(json, entry.getKey(), entry.getValue());
 				parseFunction(response, entry.getKey(), entry.getValue());
 			}
+			Log.d(TAG, "onFunctionResponse end type=" + type);
 		}
+
 	}
 
 	public void parseFunction(JSONObject json, String key, String value) throws Exception {
@@ -705,6 +698,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 		//把isTable时取出去child解析后重新添加回来
 		Set<Entry<String, JSONObject>> set = childMap == null ? null : childMap.entrySet();
 		if (set != null) {
+			Log.d(TAG, "onChildResponse start");
 			int index = 0;
 			for (Entry<String, JSONObject> entry : set) {
 				if (entry != null) {
@@ -712,6 +706,7 @@ public abstract class AbstractObjectParser implements ObjectParser {
 					index ++;
 				}
 			}
+			Log.d(TAG, "onChildResponse end");
 		}
 	}
 

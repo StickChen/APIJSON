@@ -27,7 +27,7 @@ public class Log {
 	 */
 	public static void d(String TAG, String msg) {
 		if (DEBUG) {
-			System.err.println(TAG + ".DEBUG: " + msg);
+			System.out.println(TAG + ".DEBUG: " + msg);
 		}
 	}
 
@@ -57,7 +57,7 @@ public class Log {
 	 */
 	public static void e(String TAG, String msg) {
 		if (DEBUG) {
-			System.err.println(TAG + ".ERROR: " + msg);
+			System.out.println(TAG + ".ERROR: " + msg);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class Log {
 	 */
 	public static void w(String TAG, String msg) {
 		if (DEBUG) {
-			System.err.println(TAG + ".WARN: " + msg);
+			System.out.println(TAG + ".WARN: " + msg);
 		}
 	}
 

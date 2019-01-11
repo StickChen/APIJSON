@@ -14,35 +14,17 @@ limitations under the License.*/
 
 package zuo.biao.apijson.server;
 
-import static zuo.biao.apijson.RequestMethod.GET;
-
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
-
-import javax.activation.UnsupportedDataTypeException;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import zuo.biao.apijson.*;
+import zuo.biao.apijson.server.exception.*;
 
-import zuo.biao.apijson.JSON;
-import zuo.biao.apijson.JSONResponse;
-import zuo.biao.apijson.Log;
-import zuo.biao.apijson.NotNull;
-import zuo.biao.apijson.RequestMethod;
-import zuo.biao.apijson.RequestRole;
-import zuo.biao.apijson.StringUtil;
-import zuo.biao.apijson.server.exception.ConditionErrorException;
-import zuo.biao.apijson.server.exception.ConflictException;
-import zuo.biao.apijson.server.exception.NotExistException;
-import zuo.biao.apijson.server.exception.NotLoggedInException;
-import zuo.biao.apijson.server.exception.OutOfRangeException;
+import javax.activation.UnsupportedDataTypeException;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+
+import static zuo.biao.apijson.RequestMethod.GET;
 
 /**parser for parsing request to JSONObject
  * @author Lemon
@@ -338,7 +320,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 		if (config.getDatabase() == null && globleDatabase != null) {
 			config.setDatabase(globleDatabase);
 		}
-		
+
 		if (noVerifyRole == false) {
 			if (config.getRole() == null) {
 				if (globleRole != null) {
@@ -349,7 +331,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 			}
 			verifier.verify(config);
 		}
-		
+
 	}
 
 
@@ -606,8 +588,8 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	@Override
 	public JSONObject onObjectParse(final JSONObject request
 			, String parentPath, String name, final SQLConfig arrayConfig, boolean isSubquery) throws Exception {
-		Log.i(TAG, "\ngetObject:  parentPath = " + parentPath
-				+ ";\n name = " + name + "; request = " + JSON.toJSONString(request));
+		Log.i(TAG, "start onObjectParse:  parentPath = " + parentPath
+				+ "; name = " + name + "; request = " + JSON.toJSONString(request));
 		if (request == null) {// Moment:{}   || request.isEmpty()) {//key-value条件
 			return null;
 		}
@@ -659,7 +641,8 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 			op.recycle();
 			op = null;
 		}
-
+		Log.i(TAG, "end onObjectParse:  parentPath = " + parentPath
+				+ "; name = " + name + "; request = " + JSON.toJSONString(request) + "; response = " + response);
 		return response;
 	}
 
@@ -672,7 +655,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 */
 	@Override
 	public JSONArray onArrayParse(JSONObject request, String parentPath, String name, boolean isSubquery) throws Exception {
-		Log.i(TAG, "\n\n\n getArray parentPath = " + parentPath
+		Log.i(TAG, "start onArrayParse parentPath = " + parentPath
 				+ "; name = " + name + "; request = " + JSON.toJSONString(request));
 		//不能允许GETS，否则会被通过"[]":{"@role":"ADMIN"},"Table":{},"tag":"Table"绕过权限并能批量查询
 		if (RequestMethod.isGetMethod(requestMethod, false) == false) {
@@ -692,10 +675,10 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 		request.remove(JSONRequest.KEY_COUNT);
 		request.remove(JSONRequest.KEY_PAGE);
 		request.remove(JSONRequest.KEY_JOIN);
-		Log.d(TAG, "getArray  query = " + query + "; count = " + count + "; page = " + page + "; join = " + join);
+		Log.d(TAG, "onArrayParse  query = " + query + "; count = " + count + "; page = " + page + "; join = " + join);
 
 		if (request.isEmpty()) {//如果条件成立，说明所有的 parentPath/name:request 中request都无效！！！
-			Log.e(TAG, "getArray  request.isEmpty() >> return null;");
+			Log.e(TAG, "onArrayParse  request.isEmpty() >> return null;");
 			return null;
 		}
 
@@ -703,7 +686,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 		//不用total限制数量了，只用中断机制，total只在query = 1,2的时候才获取
 		int max = isSubquery ? count : getMaxQueryCount();
 		int size = count <= 0 || count > max ? max : count;//count为每页数量，size为第page页实际数量，max(size) = count
-		Log.d(TAG, "getArray  size = " + size + "; page = " + page);
+		Log.d(TAG, "onArrayParse  size = " + size + "; page = " + page);
 
 
 		//key[]:{Table:{}}中key equals Table时 提取Table
@@ -766,7 +749,8 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 		request.put(JSONRequest.KEY_PAGE, page);
 		request.put(JSONRequest.KEY_JOIN, join);
 
-		Log.i(TAG, "getArray  return response = \n" + JSON.toJSONString(response) + "\n>>>>>>>>>>>>>>>\n\n\n");
+		Log.i(TAG, "end onArrayParse parentPath = " + parentPath
+				+ "; name = " + name + "; request = " + request + "; response = \n" + response + "\n>>>>>>>>>>>>>>>\n\n\n");
 		return response;
 	}
 
@@ -1051,7 +1035,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 */
 	@Override
 	public synchronized void putQueryResult(String path, Object result) {
-		Log.i(TAG, "\n putQueryResult  valuePath = " + path + "; result = " + result + "\n <<<<<<<<<<<<<<<<<<<<<<<");
+		Log.i(TAG, " putQueryResult  valuePath = " + path + "; result = " + result);
 		//		if (queryResultMap.containsKey(valuePath)) {//只保存被关联的value
 		Log.d(TAG, "putQueryResult  queryResultMap.containsKey(valuePath) >> queryResultMap.put(path, result);");
 		queryResultMap.put(path, result);
@@ -1063,7 +1047,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 */
 	@Override
 	public Object getValueByPath(String valuePath) {
-		Log.i(TAG, "<<<<<<<<<<<<<<< \n getValueByPath  valuePath = " + valuePath + "\n <<<<<<<<<<<<<<<<<<");
+		Log.i(TAG, "<<<<<<<<<<<<<<< \n\t getValueByPath  valuePath = " + valuePath + "\n\t <<<<<<<<<<<<<<<<<<");
 		if (StringUtil.isEmpty(valuePath, true)) {
 			Log.e(TAG, "getValueByPath  StringUtil.isNotEmpty(valuePath, true) == false >> return null;");
 			return null;
@@ -1141,7 +1125,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 
 
 	public static final String KEY_CONFIG = "config";
-	
+
 	/**执行 SQL 并返回 JSONObject
 	 * @param config
 	 * @return

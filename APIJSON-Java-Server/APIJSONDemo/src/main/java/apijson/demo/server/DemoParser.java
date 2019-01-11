@@ -14,14 +14,13 @@ limitations under the License.*/
 
 package apijson.demo.server;
 
-import javax.servlet.http.HttpSession;
-
 import com.alibaba.fastjson.JSONObject;
-
 import zuo.biao.apijson.RequestMethod;
 import zuo.biao.apijson.server.AbstractParser;
 import zuo.biao.apijson.server.JSONRequest;
 import zuo.biao.apijson.server.SQLConfig;
+
+import javax.servlet.http.HttpSession;
 
 
 /**请求解析器
@@ -32,12 +31,15 @@ public class DemoParser extends AbstractParser<Long> {
 
 	public DemoParser() {
 		super();
+		setNoVerify(true);
 	}
 	public DemoParser(RequestMethod method) {
 		super(method);
+		setNoVerify(true);
 	}
 	public DemoParser(RequestMethod method, boolean noVerify) {
 		super(method, noVerify);
+		setNoVerify(true);
 	}
 
 	protected HttpSession session;
