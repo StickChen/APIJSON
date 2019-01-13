@@ -14,12 +14,16 @@ limitations under the License.*/
 
 package zuo.biao.apijson;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**测试用Log
  * @modifier Lemon
  */
 public class Log {
 
 	private static final boolean DEBUG = true;
+	private static final Logger logger = LoggerFactory.getLogger(Log.class);
 	
 	/**
 	 * @param TAG
@@ -27,7 +31,7 @@ public class Log {
 	 */
 	public static void d(String TAG, String msg) {
 		if (DEBUG) {
-			System.out.println(TAG + ".DEBUG: " + msg);
+			logger.debug(TAG + ".DEBUG: " + msg);
 		}
 	}
 
@@ -37,7 +41,7 @@ public class Log {
 	 */
 	public static void v(String TAG, String msg) {
 		if (DEBUG) {
-			System.out.println(TAG + ".VERBOSE: " + msg);
+			logger.trace(TAG + ".VERBOSE: " + msg);
 		}
 	}
 
@@ -47,7 +51,16 @@ public class Log {
 	 */
 	public static void i(String TAG, String msg) {
 		if (DEBUG) {
-			System.out.println(TAG + ".INFO: " + msg);
+			logger.debug(TAG + ".INFO: " + msg);
+		}
+	}
+	/**
+	 * @param TAG
+	 * @param msg
+	 */
+	public static void ii(String TAG, String msg) {
+		if (DEBUG) {
+			logger.info(TAG + ".INFO: " + msg);
 		}
 	}
 
@@ -57,7 +70,7 @@ public class Log {
 	 */
 	public static void e(String TAG, String msg) {
 		if (DEBUG) {
-			System.out.println(TAG + ".ERROR: " + msg);
+			logger.error(TAG + ".ERROR: " + msg);
 		}
 	}
 
@@ -67,7 +80,7 @@ public class Log {
 	 */
 	public static void w(String TAG, String msg) {
 		if (DEBUG) {
-			System.out.println(TAG + ".WARN: " + msg);
+			logger.warn(TAG + ".WARN: " + msg);
 		}
 	}
 

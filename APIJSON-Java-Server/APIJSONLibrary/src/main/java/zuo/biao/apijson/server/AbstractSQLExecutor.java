@@ -257,9 +257,9 @@ public abstract class AbstractSQLExecutor implements SQLExecutor {
 
 	private void log(String sql, long startTime) {
 		Log.d(TAG, "execute SQL\n\t<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-				+ "\n\t select  startTime = " + startTime
-				+ "\n\t sql = \n\t " + sql
-				+ "\n\t>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+				+ "\n\t select  startTime = " + startTime);
+		Log.ii(TAG, "executeSQL >> " + sql);
+		Log.d(TAG, "\n\t>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 	}
 
 

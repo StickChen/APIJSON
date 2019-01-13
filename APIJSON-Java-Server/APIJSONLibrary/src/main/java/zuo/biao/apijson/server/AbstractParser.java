@@ -287,11 +287,13 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 		//会不会导致原来的session = null？		session = null;
 
 
-		Log.d(TAG, "\n\n\n\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n "
-				+ requestMethod + "/parseResponse  request = \n" + requestString + "\n\n");
+//		Log.d(TAG, "\n\n\n\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n "
+//				+ requestMethod + "/parseResponse  request = \n" + requestString + "\n\n");
+//
+//		Log.d(TAG, "parse  return response = \n" + JSON.toJSONString(requestObject)
+//		+ "\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n\n");
 
-		Log.d(TAG, "parse  return response = \n" + JSON.toJSONString(requestObject)
-		+ "\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n\n");
+		Log.ii(TAG, "APIJSON request=" + requestString + ", response="+ requestObject);
 
 		long endTime = System.currentTimeMillis();
 		Log.d(TAG, "parseResponse  endTime = " + endTime + ";  duration = " + (endTime - startTime)

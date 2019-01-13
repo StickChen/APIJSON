@@ -6,7 +6,7 @@
 	<groupId>apijson.demo.server</groupId>
 	<artifactId>apijson-server</artifactId>
 	<version>3.0.0</version>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>APIJSON Server</name>
 	<description>APIJSON Server</description>
