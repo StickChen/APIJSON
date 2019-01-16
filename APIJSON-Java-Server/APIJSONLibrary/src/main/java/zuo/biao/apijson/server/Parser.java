@@ -25,8 +25,8 @@ import zuo.biao.apijson.RequestMethod;
  */
 public interface Parser<T> {
 
-	int MAX_QUERY_COUNT = 100;
-	int MAX_UPDATE_COUNT = 10;
+	int MAX_QUERY_COUNT = 5000;
+	int MAX_UPDATE_COUNT = 100;
 	
 	
 	@NotNull
