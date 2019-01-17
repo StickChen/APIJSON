@@ -754,7 +754,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 	public boolean hasJoin() {
 		return joinList != null && joinList.isEmpty() == false;
 	}
-	
+
 
 	@Override
 	public boolean isTest() {
@@ -1113,8 +1113,11 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		else if (key.endsWith("{}")) {
 			keyType = 4;
 		}
-		else if (key.endsWith("<>")) {
+		else if (key.endsWith("}{")) {
 			keyType = 5;
+		}
+		else if (key.endsWith("<>")) {
+			keyType = 6;
 		}
 		else { //else绝对不能省，避免再次踩坑！ keyType = 0; 写在for循环外面都没注意！
 			keyType = 0;
@@ -1132,6 +1135,8 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		case 4:
 			return getRangeString(key, value);
 		case 5:
+			return getExistsString(key, value);
+		case 6:
 			return getContainString(key, value);
 		default: //TODO MySQL JSON类型的字段对比 key='[]' 会无结果！ key LIKE '[1, 2, 3]'  //TODO MySQL , 后面有空格！
 			return getEqualString(key, value);
@@ -1152,7 +1157,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		if (StringUtil.isName(key) == false) {
 			throw new IllegalArgumentException(key + ":value 中key不合法！不支持 ! 以外的逻辑符 ！");
 		}
-		
+
 		return getKey(key) + (not ? "!=" : "=") + (value instanceof Subquery ? getSubqueryString((Subquery) value) : getValue(value));
 	}
 
@@ -1346,12 +1351,12 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 			if (values[i] instanceof String == false) {
 				throw new IllegalArgumentException(key + "%:value 中 value 的类型只能为 String 或 String[] ！");
 			}
-			
+
 			vs = StringUtil.split((String) values[i]);
 			if (vs == null || vs.length != 2) {
 				throw new IllegalArgumentException(key + "%:value 中 value 不合法！类型为 String 时必须包括1个逗号 , 且左右两侧都有值！类型为 String[] 里面每个元素要符合前面类型为 String 的规则 ！");
 			}
-			
+
 			condition += (i <= 0 ? "" : (Logic.isAnd(type) ? AND : OR)) + "(" + getBetweenString(key, vs[0], vs[1]) + ")";
 		}
 
@@ -1441,7 +1446,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		}
 
 		throw new IllegalArgumentException(key + "{}:range 类型为" + range.getClass().getSimpleName()
-				+ "！range只能是 用','分隔条件的字符串 或者 可取选项JSONArray！");
+				+ "！range 只能是 用','分隔条件的字符串 或者 可取选项JSONArray！");
 	}
 	/**WHERE key IN ('key0', 'key1', ... )
 	 * @param in
@@ -1465,6 +1470,32 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 	//{} range >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
+	//}{ exists <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	/**WHERE EXISTS subquery
+	 * 如果合并到 getRangeString，一方面支持不了 [1,2,2] 和 ">1" (转成 EXISTS(SELECT IN ) 需要static newSQLConfig，但它不能传入子类实例，除非不是 static)，另一方面多了子查询临时表性能会比 IN 差
+	 * @param key
+	 * @param value
+	 * @return EXISTS ALL(SELECT ...)
+	 * @throws NotExistException
+	 */
+	@JSONField(serialize = false)
+	public String getExistsString(String key, Object value) throws Exception {
+		if (value == null) {
+			return "";
+		}
+		if (value instanceof Subquery == false) {
+			throw new IllegalArgumentException(key + "}{:subquery 类型为" + value.getClass().getSimpleName()
+					+ "！subquery 只能是 子查询JSONObejct！");
+		}
+
+		Logic logic = new Logic(key);
+		key = logic.getKey();
+		Log.i(TAG, "getExistsString key = " + key);
+
+		return (logic.isNot() ? NOT : "") + " EXISTS " + getSubqueryString((Subquery) value);
+	}
+	//}{ exists >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	//<> contain <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	/**WHERE key contains value
 	 * @param key
@@ -1473,14 +1504,14 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 	 * @throws NotExistException
 	 */
 	@JSONField(serialize = false)
-	public String getContainString(String key, Object value) throws NotExistException {
+	public String getContainString(String key, Object value) throws IllegalArgumentException {
 		if (value == null) {
 			return "";
 		}
 
 		Logic logic = new Logic(key);
 		key = logic.getKey();
-		Log.i(TAG, "getRangeString key = " + key);
+		Log.i(TAG, "getContainString key = " + key);
 
 		return getContainString(key, newJSONArray(value).toArray(), logic.getType());
 	}
@@ -1506,7 +1537,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 						childs[i] = "\"" + childs[i] + "\"";
 					}
 					condition += (i <= 0 ? "" : (Logic.isAnd(type) ? AND : OR))
-							+ "JSON_CONTAINS(" + getKey(key) + ", " + getValue(childs[i]) + ")";
+							+ "json_contains(" + getKey(key) + ", " + getValue(childs[i]) + ")";
 				}
 			}
 			if (condition.isEmpty()) {
@@ -1521,6 +1552,27 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		return getCondition(not, condition);
 	}
 	//<> contain >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+
+	//key@:{} Subquery <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+	@Override
+	public String getSubqueryString(Subquery subquery) throws Exception {
+		String range = subquery.getRange();
+		SQLConfig cfg = subquery.getConfig();
+
+		cfg.setPreparedValueList(new ArrayList<>());
+		String sql = (range  == null || range.isEmpty() ? "" : range) + "(" + cfg.getSQL(isPrepared()) + ") ";
+
+		preparedValueList.addAll(cfg.getPreparedValueList());
+
+		return sql;
+	}
+
+	//key@:{} Subquery >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
 
 	/**拼接条件
 	 * @param not
@@ -1689,9 +1741,9 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 
 		Subquery from = config.getFrom();
 		if (from != null) {
-			table = config.getSubqueryString(from) + " AS " + config.getKey(from.getFrom()) + " "; //TODO Comment:c 转为  AS `Comment:c`
+			table = config.getSubqueryString(from) + " AS " + config.getAlias() + " "; //TODO Comment:c 转为  AS `Comment:c`
 		}
-		
+
 		String condition = table + config.getJoinString() + where + (
 				RequestMethod.isGetMethod(config.getMethod(), true) == false ?
 						"" : config.getGroupString() + config.getHavingString() + config.getOrderString()
@@ -2181,22 +2233,25 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 		}
 
 		String key = new String(originKey);
-		if (key.endsWith("$")) {//搜索，查询时处理
+		if (key.endsWith("$")) {//搜索 LIKE，查询时处理
 			key = key.substring(0, key.length() - 1);
 		}
-		else if (key.endsWith("~") || key.endsWith("?")) {//匹配正则表达式，查询时处理  TODO ？可能以后会被废弃，全用 ~ 和 *~ 替代，更接近 PostgreSQL 语法 
+		else if (key.endsWith("~") || key.endsWith("?")) {//匹配正则表达式 REGEXP，查询时处理  TODO ？可能以后会被废弃，全用 ~ 和 *~ 替代，更接近 PostgreSQL 语法 
 			key = key.substring(0, key.length() - 1);
 			if (key.endsWith("*")) {//忽略大小写
 				key = key.substring(0, key.length() - 1);
 			}
 		}
-		else if (key.endsWith("%")) {//数字、文本、日期范围，BETWEEN AND
+		else if (key.endsWith("%")) {//数字、文本、日期范围 BETWEEN AND
 			key = key.substring(0, key.length() - 1);
 		}
-		else if (key.endsWith("{}")) {//被包含，或者说key对应值处于value的范围内。查询时处理
+		else if (key.endsWith("{}")) {//被包含 IN，或者说key对应值处于value的范围内。查询时处理
 			key = key.substring(0, key.length() - 2);
 		} 
-		else if (key.endsWith("<>")) {//包含，或者说value处于key对应值的范围内。查询时处理
+		else if (key.endsWith("}{")) {//被包含 EXISTS，或者说key对应值处于value的范围内。查询时处理
+			key = key.substring(0, key.length() - 2);
+		} 
+		else if (key.endsWith("<>")) {//包含 json_contains，或者说value处于key对应值的范围内。查询时处理
 			key = key.substring(0, key.length() - 2);
 		} 
 		else if (key.endsWith("()")) {//方法，查询完后处理，先用一个Map<key,function>保存？
