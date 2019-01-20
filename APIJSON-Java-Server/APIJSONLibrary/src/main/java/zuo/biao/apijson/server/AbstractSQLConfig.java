@@ -14,54 +14,21 @@ limitations under the License.*/
 
 package zuo.biao.apijson.server;
 
-import static zuo.biao.apijson.JSONObject.KEY_COLUMN;
-import static zuo.biao.apijson.JSONObject.KEY_COMBINE;
-import static zuo.biao.apijson.JSONObject.KEY_DATABASE;
-import static zuo.biao.apijson.JSONObject.KEY_FROM;
-import static zuo.biao.apijson.JSONObject.KEY_GROUP;
-import static zuo.biao.apijson.JSONObject.KEY_HAVING;
-import static zuo.biao.apijson.JSONObject.KEY_ID;
-import static zuo.biao.apijson.JSONObject.KEY_ID_IN;
-import static zuo.biao.apijson.JSONObject.KEY_ORDER;
-import static zuo.biao.apijson.JSONObject.KEY_ROLE;
-import static zuo.biao.apijson.JSONObject.KEY_SCHEMA;
-import static zuo.biao.apijson.JSONObject.KEY_USER_ID;
-import static zuo.biao.apijson.JSONObject.KEY_USER_ID_IN;
-import static zuo.biao.apijson.RequestMethod.DELETE;
-import static zuo.biao.apijson.RequestMethod.GET;
-import static zuo.biao.apijson.RequestMethod.GETS;
-import static zuo.biao.apijson.RequestMethod.HEADS;
-import static zuo.biao.apijson.RequestMethod.POST;
-import static zuo.biao.apijson.RequestMethod.PUT;
-import static zuo.biao.apijson.SQL.AND;
-import static zuo.biao.apijson.SQL.NOT;
-import static zuo.biao.apijson.SQL.OR;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
-
-import zuo.biao.apijson.JSON;
-import zuo.biao.apijson.Log;
-import zuo.biao.apijson.NotNull;
-import zuo.biao.apijson.RequestMethod;
-import zuo.biao.apijson.RequestRole;
-import zuo.biao.apijson.SQL;
-import zuo.biao.apijson.StringUtil;
+import zuo.biao.apijson.*;
 import zuo.biao.apijson.server.exception.NotExistException;
 import zuo.biao.apijson.server.model.Column;
 import zuo.biao.apijson.server.model.Table;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
+import static zuo.biao.apijson.JSONObject.*;
+import static zuo.biao.apijson.RequestMethod.*;
+import static zuo.biao.apijson.SQL.*;
 
 /**config sql for JSON Request
  * @author Lemon
@@ -1389,7 +1356,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 	private static final Pattern PATTERN_HAVING;
 	private static final Pattern PATTERN_HAVING_SUFFIX;
 	static {
-		PATTERN_RANGE = Pattern.compile("^[0-9%!=<>,]+$"); // ^[a-zA-Z0-9_*%!=<>(),"]+$ 导致 exists(select*from(Comment)) 通过！
+		PATTERN_RANGE = Pattern.compile("^[a-zA-Z0-9_*%!=<>(),\'\" :+]+$"); // ^[a-zA-Z0-9_*%!=<>(),"]+$ 导致 exists(select*from(Comment)) 通过！
 		PATTERN_HAVING = Pattern.compile("^[A-Za-z0-9%!=<>]+$"); //TODO 改成更好的正则，校验前面为单词，中间为操作符，后面为值
 		PATTERN_HAVING_SUFFIX = Pattern.compile("^[0-9%!=<>]+$"); // ^[a-zA-Z0-9_*%!=<>(),"]+$ 导致 exists(select*from(Comment)) 通过！
 	}
@@ -1420,7 +1387,7 @@ public abstract class AbstractSQLConfig implements SQLConfig {
 			throw new IllegalArgumentException(key + "{}\":[] 中key末尾的逻辑运算符只能用'|','!'中的一种 ！");
 		}
 		else if (range instanceof String) {//非Number类型需要客户端拼接成 < 'value0', >= 'value1'这种
-			if (isPrepared() && PATTERN_RANGE.matcher((String) range).matches() == false) {
+			if (isPrepared() /*&& PATTERN_RANGE.matcher((String) range).matches() == false*/) {
 				throw new UnsupportedOperationException("字符串 " + range + " 不合法！预编译模式下 key{}:\"condition\" 中 condition 必须符合正则表达式 ^[0-9%!=<>,]+$ ！不允许空格！");
 			}
 
