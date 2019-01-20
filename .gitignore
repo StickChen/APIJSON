@@ -17,3 +17,9 @@ APIJSON-Java-Server/APIJSONDemo/.settings
 APIJSON-Java-Server/APIJSONLibrary/.settings
 *.classpath
 *.project
+.idea/
+APIJSON-Java-Server/.idea/
+APIJSON-Java-Server/APIJSONDemo/apijson-demo.iml
+APIJSON-Java-Server/APIJSONLibrary/.idea/
+APIJSON-Java-Server/APIJSONLibrary/apijson-library.iml
+APIJSON-Java-Server/apijson-server.iml
