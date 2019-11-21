@@ -251,11 +251,11 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 				return extendErrorResult(requestObject, e);
 			}
 		}
-		
+
 		try {
 			setGlobleDatabase(requestObject.getString(JSONRequest.KEY_DATABASE));
 			setGlobleFormat(requestObject.getBooleanValue(JSONRequest.KEY_FORMAT));
-			
+
 			requestObject.remove(JSONRequest.KEY_DATABASE);
 			requestObject.remove(JSONRequest.KEY_FORMAT);
 		} catch (Exception e) {
@@ -293,7 +293,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 //		Log.d(TAG, "parse  return response = \n" + JSON.toJSONString(requestObject)
 //		+ "\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n\n");
 
-		Log.ii(TAG, "APIJSON request=" + requestString + ", response="+ requestObject);
+		Log.ii(TAG, "APIJSON request=" + requestString /*+ ", response="+ requestObject*/);
 
 		long endTime = System.currentTimeMillis();
 		Log.d(TAG, "parseResponse  endTime = " + endTime + ";  duration = " + (endTime - startTime)
@@ -340,7 +340,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	/**解析请求JSONObject
 	 * @param request => URLDecoder.decode(request, UTF_8);
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@NotNull
 	public static JSONObject parseRequest(String request) throws Exception {
@@ -355,7 +355,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	public JSONObject parseCorrectRequest(JSONObject target) throws Exception {
 		return Structure.parseRequest(requestMethod, "", target, requestObject, getMaxUpdateCount(), this);
 	}
-	
+
 
 	/**新建带状态内容的JSONObject
 	 * @param code
@@ -419,7 +419,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 			int code;
 			if (e instanceof UnsupportedEncodingException) {
 				code = JSONResponse.CODE_UNSUPPORTED_ENCODING;
-			} 
+			}
 			else if (e instanceof IllegalAccessException) {
 				code = JSONResponse.CODE_ILLEGAL_ACCESS;
 			}
@@ -437,7 +437,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 			}
 			else if (e instanceof TimeoutException) {
 				code = JSONResponse.CODE_TIME_OUT;
-			} 
+			}
 			else if (e instanceof ConflictException) {
 				code = JSONResponse.CODE_CONFLICT;
 			}
@@ -471,7 +471,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 * @param method
 	 * @param request
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Override
 	public JSONObject parseCorrectRequest() throws Exception {
@@ -516,7 +516,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 * @param method
 	 * @param response
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Override
 	public JSONObject parseCorrectResponse(String table, JSONObject response) throws Exception {
@@ -585,7 +585,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 * @param request parentObject的value
 	 * @param config for array item
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Override
 	public JSONObject onObjectParse(final JSONObject request
@@ -652,7 +652,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 * @param parentPath parentObject的路径
 	 * @param name parentObject的key
 	 * @param request parentObject的value
-	 * @return 
+	 * @return
 	 * @throws Exception
 	 */
 	@Override
@@ -761,8 +761,8 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	/**多表同时筛选
 	 * @param join "&/User/id@,</User[]/User/id{}@,</[]/Comment/momentId@"
 	 * @param request
-	 * @return 
-	 * @throws Exception 
+	 * @return
+	 * @throws Exception
 	 */
 	private List<Join> onJoinParse(String join, JSONObject request) throws Exception {
 		String[] sArr = request == null || request.isEmpty() ? null : StringUtil.split(join);
@@ -833,7 +833,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 				throw new IllegalArgumentException(targetTable + "." + targetKey
 						+ ":'/targetTable/targetKey' 中路径对应的对象不存在！");
 			}
-			
+
 			tableObj.put(key, tableObj.remove(key)); //保证和SQLExcecutor缓存的Config里where顺序一致，生成的SQL也就一致
 
 			Join j = new Join();
@@ -882,7 +882,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	 * @param table
 	 * @param key
 	 * @param obj
-	 * @param targetKey 
+	 * @param targetKey
 	 * @return null ? 全部 : 有限的数组
 	 */
 	private JSONObject getJoinObject(String table, JSONObject obj, String key) {
@@ -940,7 +940,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 	public int getMaxUpdateCount() {
 		return MAX_UPDATE_COUNT;
 	}
-	
+
 
 	/**根据路径取值
 	 * @param parent
@@ -1024,7 +1024,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 					pos = ps[i+1].contains("/") == false ? ps[i+1]
 							: ps[i+1].substring(0, ps[i+1].indexOf("/"));
 					if (
-							//StringUtil.isNumer(pos) && 
+							//StringUtil.isNumer(pos) &&
 							vs[i+1].startsWith(pos + "/") == false) {
 						vs[i+1] = pos + "/" + vs[i+1];
 					}
@@ -1146,7 +1146,7 @@ public abstract class AbstractParser<T> implements Parser<T>, SQLCreator {
 			sqlObj.put(KEY_CONFIG, config);
 			return sqlObj;//容易丢失信息 JSON.parseObject(config);
 		}
-		
+
 		return parseCorrectResponse(config.getTable(), sqlExecutor.execute(config));
 	}
 
